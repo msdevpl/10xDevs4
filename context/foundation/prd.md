@@ -180,7 +180,7 @@ Uwaga zakresowa: pomysł wyjściowy mówił „jeden budynek"; powyższy model z
 ## Non-Goals
 
 MVP **nie** robi (potwierdzone przez użytkownika 2026-11-25):
-- **Brak powiadomień wychodzących (e-mail/SMS/push)** — o stanie zgłoszenia wszyscy dowiadują się z list w aplikacji; P1 nie alarmuje zarządcy automatycznie.
+- **Brak powiadomień wychodzących (e-mail/SMS/push)** — o stanie zgłoszenia wszyscy dowiadują się z list w aplikacji; P1 nie alarmuje zarządcy automatycznie. Po MVP do rozważenia e-mail przez [SendGrid dla C#](https://github.com/sendgrid/sendgrid-csharp) (np. alert P1 dla zarządcy, zmiana statusu dla mieszkańca).
 - **Brak komentarzy/czatów pod zgłoszeniami** — komunikacja przy zgłoszeniu odbywa się poza aplikacją (telefon zarządcy / FR-013).
 - **Brak modułu raportów i analityki dla zarządu wspólnoty.**
 
@@ -207,7 +207,8 @@ Pomysły na po MVP (nice-to-have, decyzja użytkownika 2026-11-27):
   - bezpieczeństwo: przy zagrożeniu (dym, gaz, zalewanie) agent odczytuje kartę bezpieczeństwa z reguł (FR-021) i kieruje na 112, nigdy nie improwizuje porady; zawsze jest możliwość przełączenia do człowieka;
   - akcje agenta to te same endpointy API co w aplikacji (te same uprawnienia, ślad zmian), a nie bezpośredni dostęp do bazy;
   - RODO: informacja o nagrywaniu i przetwarzaniu rozmowy, region UE, retencja nagrań i transkrypcji;
-  - koszty: minuty Twilio plus ElevenLabs (zamiana mowy na tekst i z powrotem) plus model — do oszacowania przed decyzją.
+  - koszty: minuty Twilio plus ElevenLabs (zamiana mowy na tekst i z powrotem) plus model — do oszacowania przed decyzją; orientacyjnie (2026-11): ElevenLabs Agents ok. $0,08/min, Twilio PL ok. $0,01/min przychodzące + ok. $4/mies. za numer;
+  - linki: [Twilio Voice – cennik PL](https://www.twilio.com/en-us/voice/pricing/pl), [Twilio Speech Recognition](https://www.twilio.com/en-us/speech-recognition).
 
 ## Open Questions
 
