@@ -43,7 +43,7 @@ Trzecia osoba zainteresowana: **Zarząd wspólnoty** (eskalacje, presja przy nie
 4. System wyznacza termin docelowy (FR-005).
 5. Mieszkaniec widzi potwierdzenie, priorytet i termin; przy zagrożeniu (np. dym, gaz, zalewanie) także kartę bezpieczeństwa z instrukcją, co zrobić od razu (FR-021).
 6. Zgłoszenie trafia na wspólną listę wspólnoty bez tożsamości zgłaszającego (FR-007, FR-015).
-7. Zarządca widzi je na liście posortowanej według pilności terminu (FR-009).
+7. Zarządca widzi je na liście posortowanej według pilności terminu (FR-009); zgłoszenie P1 dodatkowo od razu trafia do niego e-mailem (FR-023).
 8. Zarządca zmienia status; mieszkaniec widzi nowy status (FR-010).
 
 ### Secondary
@@ -135,6 +135,8 @@ Format FR (ustalony przez użytkownika): „[Aktor] może [zdolność]".
   > Decyzja użytkownika (2026-11-27): mała funkcja AI zamiast czatu. AI wyłącznie **doradza** zarządcy — nigdy sam nie zmienia priorytetu, nic nie widzi mieszkaniec, porady bezpieczeństwa pozostają w kartach (FR-021). Do modelu trafia **tylko opis usterki** (bez tożsamości zgłaszającego i miejsca usterki). System zapisuje, czy podpowiedź została zastosowana (miara trafności AI; odrzucone podpowiedzi wskazują słowa warte dopisania do katalogu).
 
 ### Bezpieczeństwo mieszkańca
+- FR-023: System może natychmiast powiadomić zarządcę **e-mailem** o nowym zgłoszeniu z priorytetem P1 (treść, priorytet, termin reakcji, link do zgłoszenia w aplikacji). Priority: must-have
+  > Decyzja użytkownika (2026-11-27): bez alertu zgłoszenie P1 złożone np. w nocy czeka niezauważone, a mieszkaniec widzi termin 4 h, którego nikt nie pilnuje — w najważniejszym scenariuszu aplikacja byłaby gorsza niż telefon. Wyjątek od zasady „brak powiadomień wychodzących” (## Non-Goals) ograniczony do P1 i tylko do zarządcy.
 - FR-021: Mieszkaniec może zobaczyć **kartę bezpieczeństwa** — stałą, przygotowaną wcześniej instrukcję, co zrobić od razu (np. „wyłącz bezpiecznik, jeśli to bezpieczne; przy zagrożeniu dzwoń 112”) — gdy jego zgłoszenie trafi w atrybut katalogu, do którego przypisano kartę. Priority: must-have
   > Decyzja użytkownika (2026-11-27): zamiast czatu z AI w MVP. Treść kart jest **deterministyczna** (część katalogu reguł, wartości startowe przy wdrożeniu) — porady bezpieczeństwa nigdy nie pochodzą z modelu językowego. Karta jest informacją, nie blokuje wysłania zgłoszenia i nie zastępuje telefonu alarmowego.
 
@@ -144,6 +146,7 @@ Format FR (ustalony przez użytkownika): „[Aktor] może [zdolność]".
 - Produkt dostępny jako **aplikacja webowa** (decyzja użytkownika 2026-11-25); dopuszczalna przyszła zmiana w stronę desktopu — nie wymaga przepisania rdzenia.
 - Ścieżka mieszkańca (logowanie, zgłoszenie, wspólna lista, podgląd statusu) jest w pełni wykonalna na telefonie — mieszkańcy wchodzą głównie z komórki. Panel zarządcy i pracownika administracji może wymagać komputera (decyzja użytkownika 2026-11-26).
 - Dostęp do treści zgłoszeń i danych mieszkańców mają wyłącznie uprawnione role: mieszkaniec (treści zgłoszeń bez tożsamości zgłaszających), administracja/zarządca (pełnia). Nikt nieuprawniony nie widzi danych.
+- Alert P1 (FR-023) wychodzi w ciągu ok. 1 minuty od utworzenia zgłoszenia; niedostępność usługi e-mail nie blokuje tworzenia zgłoszeń.
 - Niedostępność usługi AI (FR-022) nie blokuje żadnej innej funkcji; podpowiedź ma ograniczony czas oczekiwania i pokazuje postęp zgodnie z progiem ~2 s.
 - MVP nie zawiera anonimizacji w aplikacji (FR-016 poza MVP) ani harmonogramu retencji; zasada retencji pozostaje regułą operacyjną realizowaną ręcznie: „dane trzymamy tylko tak długo, jak wymaga obsługa zgłoszenia i rozliczenia wspólnoty".
 
@@ -161,6 +164,7 @@ Doprecyzowania (decyzje użytkownika 2026-11-26):
 - **Kategoria wybierana przez mieszkańca + słowa kluczowe:** **wyższy z dwóch priorytetów wygrywa** — kategoria ma domyślny priorytet, trafienie w katalogu słów kluczowych może go podnieść (np. kategoria „hydraulika” → niższy priorytet, ale „zalewa” w opisie → P1). Wpływ na „Do oceny” → Open Questions.
 - **Korekta zarządcy (FR-014):** zapisuje kto, kiedy, z jakiego priorytetu na jaki.
 - **Podpowiedź AI (FR-022):** dostępna tylko dla zgłoszeń „Do oceny”, wywoływana na żądanie zarządcy (przycisk), bez przetwarzania w tle. Wynik ma stały format (kategoria z listy kategorii, P1–P4, uzasadnienie); odpowiedź spoza listy kategorii lub priorytetów jest odrzucana. Zastosowanie podpowiedzi = zwykła korekta FR-014 (ślad: kto, kiedy, z jakiego na jaki) z oznaczeniem, że pochodziła z AI. Błąd lub przekroczenie czasu modelu → komunikat „podpowiedź niedostępna”, ręczna ocena działa bez zmian.
+- **Alert P1 (FR-023):** wysyłany, gdy zgłoszenie **przy utworzeniu** dostaje P1 (przez mieszkańca lub pracownika administracji — FR-013). Korekta priorytetu na P1 przez zarządcę (FR-014) alertu nie wysyła — zarządca już wie. Adres(y) odbiorcy z konfiguracji. Wysyłka po zapisaniu zgłoszenia; błąd wysyłki nie cofa ani nie blokuje zgłoszenia — jest logowany, a fakt wysłania lub błędu zapisywany przy zgłoszeniu (widoczny dla zarządcy). E-mail nie zawiera danych zgłaszającego poza tym, co i tak widzi zarządca.
 - **Karta bezpieczeństwa (FR-021):** atrybut katalogu może mieć przypisaną kartę bezpieczeństwa (stały tekst). Trafienie w taki atrybut pokazuje kartę mieszkańcowi razem z potwierdzeniem zgłoszenia i w podglądzie jego zgłoszenia; przy kilku trafieniach pokazywane są wszystkie przypisane karty. Korekta priorytetu przez zarządcę nie zmienia kart.
 - *Po MVP (decyzje zachowane na później):* podbicia (FR-017) są wyłącznie sygnałem dla zarządcy — nie zmieniają priorytetu, terminu ani kolejności; edycja zgłoszenia (FR-008) powoduje ponowną klasyfikację, chyba że zarządca ręcznie skorygował priorytet — wtedy korekta ma pierwszeństwo.
 
@@ -180,7 +184,7 @@ Uwaga zakresowa: pomysł wyjściowy mówił „jeden budynek"; powyższy model z
 ## Non-Goals
 
 MVP **nie** robi (potwierdzone przez użytkownika 2026-11-25):
-- **Brak powiadomień wychodzących (e-mail/SMS/push)** — o stanie zgłoszenia wszyscy dowiadują się z list w aplikacji; P1 nie alarmuje zarządcy automatycznie. Po MVP do rozważenia e-mail przez [SendGrid dla C#](https://github.com/sendgrid/sendgrid-csharp) (np. alert P1 dla zarządcy, zmiana statusu dla mieszkańca).
+- **Brak powiadomień wychodzących (e-mail/SMS/push)** — o stanie zgłoszenia wszyscy dowiadują się z list w aplikacji; **Wyjątek: e-mail do zarządcy o zgłoszeniu P1 (FR-023, w MVP).** Po MVP do rozważenia kolejne powiadomienia, np. zmiana statusu dla mieszkańca, SMS przy P1.
 - **Brak komentarzy/czatów pod zgłoszeniami** — komunikacja przy zgłoszeniu odbywa się poza aplikacją (telefon zarządcy / FR-013).
 - **Brak modułu raportów i analityki dla zarządu wspólnoty.**
 
