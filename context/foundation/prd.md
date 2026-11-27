@@ -41,7 +41,7 @@ Trzecia osoba zainteresowana: **Zarząd wspólnoty** (eskalacje, presja przy nie
 2. Tworzy zgłoszenie z opisem (FR-003).
 3. System nadaje priorytet P1–P4 lub status „Do oceny” (FR-004).
 4. System wyznacza termin docelowy (FR-005).
-5. Mieszkaniec widzi potwierdzenie, priorytet i termin.
+5. Mieszkaniec widzi potwierdzenie, priorytet i termin; przy zagrożeniu (np. dym, gaz, zalewanie) także kartę bezpieczeństwa z instrukcją, co zrobić od razu (FR-021).
 6. Zgłoszenie trafia na wspólną listę wspólnoty bez tożsamości zgłaszającego (FR-007, FR-015).
 7. Zarządca widzi je na liście posortowanej według pilności terminu (FR-009).
 8. Zarządca zmienia status; mieszkaniec widzi nowy status (FR-010).
@@ -66,6 +66,7 @@ Trzecia osoba zainteresowana: **Zarząd wspólnoty** (eskalacje, presja przy nie
 - Opis z atrybutem P1 (np. „zalewa”) → P1, termin 4 h liczony całą dobę, 7 dni w tygodniu.
 - Brak trafień w katalogu → „Do oceny” z terminem oceny z konfiguracji.
 - Zmiana statusu przez zarządcę jest widoczna dla mieszkańca.
+- Opis z atrybutem, do którego w katalogu przypisano kartę bezpieczeństwa (np. „dym”), → mieszkaniec widzi tę kartę razem z potwierdzeniem zgłoszenia (FR-021).
 
 ## Functional Requirements
 
@@ -129,6 +130,10 @@ Format FR (ustalony przez użytkownika): „[Aktor] może [zdolność]".
 - FR-018: Uprawniona osoba może edytować katalog reguł kategoryzacji (słowniki, mapowanie P1–P4, czasy reakcji) w aplikacji — panel konfiguracji. Priority: nice-to-have — poza MVP; reguły i czasy reakcji przygotowywane wstępnie przy wdrożeniu
   > Socrates (2026-11-26): Kontrargument: „bez panelu każda poprawka katalogu wymaga programisty — przy błędnej klasyfikacji zarządca jest bezradny". Rozwiązanie: ryzyko zaakceptowane; w MVP katalog (wartości startowe) poprawiany ręcznie, panel po MVP.
 
+### Bezpieczeństwo mieszkańca
+- FR-021: Mieszkaniec może zobaczyć **kartę bezpieczeństwa** — stałą, przygotowaną wcześniej instrukcję, co zrobić od razu (np. „wyłącz bezpiecznik, jeśli to bezpieczne; przy zagrożeniu dzwoń 112”) — gdy jego zgłoszenie trafi w atrybut katalogu, do którego przypisano kartę. Priority: must-have
+  > Decyzja użytkownika (2026-11-27): zamiast czatu z AI w MVP. Treść kart jest **deterministyczna** (część katalogu reguł, wartości startowe przy wdrożeniu) — porady bezpieczeństwa nigdy nie pochodzą z modelu językowego. Karta jest informacją, nie blokuje wysłania zgłoszenia i nie zastępuje telefonu alarmowego.
+
 ## Non-Functional Requirements
 
 - Użytkownik widzi potwierdzenie każdej akcji natychmiast („strona reaguje od razu" — wypowiedź użytkownika); operacja dłuższa niż ~2 s pokazuje widoczny postęp. Próg potwierdzenia celowo bez liczby (decyzja użytkownika 2026-11-26).
@@ -150,6 +155,7 @@ Doprecyzowania (decyzje użytkownika 2026-11-26):
 - **Zegar terminu:** liczony **całą dobę, 7 dni w tygodniu** (bez godzin pracy).
 - **Kategoria wybierana przez mieszkańca + słowa kluczowe:** **wyższy z dwóch priorytetów wygrywa** — kategoria ma domyślny priorytet, trafienie w katalogu słów kluczowych może go podnieść (np. kategoria „hydraulika” → niższy priorytet, ale „zalewa” w opisie → P1). Wpływ na „Do oceny” → Open Questions.
 - **Korekta zarządcy (FR-014):** zapisuje kto, kiedy, z jakiego priorytetu na jaki.
+- **Karta bezpieczeństwa (FR-021):** atrybut katalogu może mieć przypisaną kartę bezpieczeństwa (stały tekst). Trafienie w taki atrybut pokazuje kartę mieszkańcowi razem z potwierdzeniem zgłoszenia i w podglądzie jego zgłoszenia; przy kilku trafieniach pokazywane są wszystkie przypisane karty. Korekta priorytetu przez zarządcę nie zmienia kart.
 - *Po MVP (decyzje zachowane na później):* podbicia (FR-017) są wyłącznie sygnałem dla zarządcy — nie zmieniają priorytetu, terminu ani kolejności; edycja zgłoszenia (FR-008) powoduje ponowną klasyfikację, chyba że zarządca ręcznie skorygował priorytet — wtedy korekta ma pierwszeństwo.
 
 ## Access Control
@@ -184,9 +190,16 @@ Redukcja zakresu do 3 tygodni (decyzja użytkownika 2026-11-26):
 - **Brak podbić zgłoszeń** (FR-017 = nice-to-have) — sygnałem „to już zgłoszone” jest wspólna lista (FR-007).
 - **Brak edycji zgłoszenia przez mieszkańca** (FR-008 = nice-to-have) — poprawki przez zarządcę / telefon; odpada reguła reklasyfikacji po edycji.
 
+Pomysły na po MVP (nice-to-have, decyzja użytkownika 2026-11-27):
+- **Brak asystenta AI (czatu) przy zgłaszaniu problemu** — mieszkaniec opisuje problem (np. „śmierdzi instalacja”), agent AI analizuje go i podpowiada działania (wyłącz bezpieczniki, zadzwoń po straż pożarną lub elektryka) i pomaga wypełnić zgłoszenie. W MVP zastępuje go karta bezpieczeństwa (FR-021). Ustalenia na później:
+  - porady bezpieczeństwa (112, bezpieczniki, gaz) zawsze z deterministycznych reguł (FR-021), nie z modelu; AI tylko pomaga opisać problem i proponuje kategorię;
+  - gateway wejściowy (ograniczenie do tematu zgłoszeń, ochrona przed prompt injection) i wyjściowy (ton, konwencja, brak treści obraźliwych) — rozważane: LiteLLM jako gateway, Langfuse do monitorowania zapytań; prostsza alternatywa w obecnym stacku: Azure OpenAI (content filters + Prompt Shields), Microsoft.Extensions.AI (`IChatClient`), Langfuse Cloud przez OpenTelemetry lub Application Insights;
+  - RODO: opisy zgłoszeń mogą zawierać dane osobowe — model w regionie UE, bez trenowania na danych.
+
 ## Open Questions
 
 1. **Insight vs status quo** — dlaczego gotowe oprogramowanie dla wspólnot nie rozwiązuje tego problemu? (drugi akapit ## Vision & Problem Statement pozostaje TODO) — Owner: użytkownik. Block: nie (warto wiedzieć przed decyzją build-vs-buy).
 2. **Kiedy zgłoszenie dostaje „Do oceny”, skoro kategoria ma domyślny priorytet?** — Jeżeli każda kategoria z listy ma domyślny priorytet, reguła „wyższy wygrywa” zawsze da wynik i „Do oceny” nigdy nie wystąpi. Do ustalenia: czy kategoria jest obowiązkowa, czy istnieje kategoria bez priorytetu (np. „Inne”) prowadząca do „Do oceny”. — Owner: użytkownik. Block: nie, ale wpływa na regułę domenową i US-01 (kryterium „brak trafień → Do oceny”).
 3. **Wartości startowe** — lista kategorii z domyślnymi priorytetami, katalog słów kluczowych, czasy reakcji P1–P4 oraz termin oceny „Do oceny”. — Owner: użytkownik. Block: nie (potrzebne przed wdrożeniem, nie przed PRD).
 4. **Zakres anonimizacji (FR-016, poza MVP)** — kto wywołuje anonimizację i co dokładnie zostaje po niej. — Owner: użytkownik. Block: nie (dotyczy wersji po MVP).
+5. **Treść kart bezpieczeństwa (FR-021)** — które atrybuty katalogu dostają kartę, jaka jest treść każdej karty i kto ją zatwierdza (odpowiedzialność za poradę: zarządca / wspólnota). — Owner: użytkownik. Block: nie (potrzebne przed wdrożeniem, razem z wartościami startowymi z pkt 3).
