@@ -201,6 +201,13 @@ Pomysły na po MVP (nice-to-have, decyzja użytkownika 2026-11-27):
   - porady bezpieczeństwa (112, bezpieczniki, gaz) zawsze z deterministycznych reguł (FR-021), nie z modelu; AI tylko pomaga opisać problem i proponuje kategorię;
   - gateway wejściowy (ograniczenie do tematu zgłoszeń, ochrona przed prompt injection) i wyjściowy (ton, konwencja, brak treści obraźliwych) — rozważane: LiteLLM jako gateway, Langfuse do monitorowania zapytań; prostsza alternatywa w obecnym stacku: Azure OpenAI (content filters + Prompt Shields), Microsoft.Extensions.AI (`IChatClient`), Langfuse Cloud przez OpenTelemetry lub Application Insights;
   - RODO: opisy zgłoszeń mogą zawierać dane osobowe — model w regionie UE, bez trenowania na danych.
+- **Brak asystenta głosowego (telefonicznego)** — kolejne fazy, po asystencie AI. Mieszkaniec dzwoni na zwykły numer telefonu; **Twilio** odbiera połączenie z sieci telefonicznej (PSTN) i przekazuje strumień głosu do **ElevenLabs**, który zamienia mowę na tekst i komunikuje się z naszym backendem. W backendzie agent otrzymuje komunikat i wykonuje akcje, np. zakłada zgłoszenie, sprawdza status zgłoszenia, informuje dzwoniącego o stanie sprawy. Odpowiedź wraca do ElevenLabs, który zamienia tekst na mowę i odpowiada dzwoniącemu. Przejmuje kanał telefoniczny, który dziś obsługuje administracja (FR-013). Ustalenia na później:
+  - identyfikacja dzwoniącego: numer telefonu przypisany do konta plus dodatkowe potwierdzenie (np. PIN), bo numer można podszyć; bez potwierdzenia agent nie podaje danych zgłoszeń;
+  - prywatność (FR-015): dzwoniący słyszy tylko status własnych zgłoszeń i informacje jawne we wspólnocie;
+  - bezpieczeństwo: przy zagrożeniu (dym, gaz, zalewanie) agent odczytuje kartę bezpieczeństwa z reguł (FR-021) i kieruje na 112, nigdy nie improwizuje porady; zawsze jest możliwość przełączenia do człowieka;
+  - akcje agenta to te same endpointy API co w aplikacji (te same uprawnienia, ślad zmian), a nie bezpośredni dostęp do bazy;
+  - RODO: informacja o nagrywaniu i przetwarzaniu rozmowy, region UE, retencja nagrań i transkrypcji;
+  - koszty: minuty Twilio plus ElevenLabs (zamiana mowy na tekst i z powrotem) plus model — do oszacowania przed decyzją.
 
 ## Open Questions
 
