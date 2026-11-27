@@ -130,6 +130,10 @@ Format FR (ustalony przez użytkownika): „[Aktor] może [zdolność]".
 - FR-018: Uprawniona osoba może edytować katalog reguł kategoryzacji (słowniki, mapowanie P1–P4, czasy reakcji) w aplikacji — panel konfiguracji. Priority: nice-to-have — poza MVP; reguły i czasy reakcji przygotowywane wstępnie przy wdrożeniu
   > Socrates (2026-11-26): Kontrargument: „bez panelu każda poprawka katalogu wymaga programisty — przy błędnej klasyfikacji zarządca jest bezradny". Rozwiązanie: ryzyko zaakceptowane; w MVP katalog (wartości startowe) poprawiany ręcznie, panel po MVP.
 
+### Wsparcie AI dla zarządcy
+- FR-022: Zarządca może poprosić o **podpowiedź AI** dla zgłoszenia „Do oceny” — system zwraca proponowaną kategorię, priorytet P1–P4 i krótkie uzasadnienie; zarządca stosuje ją jednym kliknięciem (przez korektę FR-014) albo ignoruje. Priority: nice-to-have — w MVP, realizowane po ścieżce głównej (logowanie → zgłoszenie → lista → statusy)
+  > Decyzja użytkownika (2026-11-27): mała funkcja AI zamiast czatu. AI wyłącznie **doradza** zarządcy — nigdy sam nie zmienia priorytetu, nic nie widzi mieszkaniec, porady bezpieczeństwa pozostają w kartach (FR-021). Do modelu trafia **tylko opis usterki** (bez tożsamości zgłaszającego i miejsca usterki). System zapisuje, czy podpowiedź została zastosowana (miara trafności AI; odrzucone podpowiedzi wskazują słowa warte dopisania do katalogu).
+
 ### Bezpieczeństwo mieszkańca
 - FR-021: Mieszkaniec może zobaczyć **kartę bezpieczeństwa** — stałą, przygotowaną wcześniej instrukcję, co zrobić od razu (np. „wyłącz bezpiecznik, jeśli to bezpieczne; przy zagrożeniu dzwoń 112”) — gdy jego zgłoszenie trafi w atrybut katalogu, do którego przypisano kartę. Priority: must-have
   > Decyzja użytkownika (2026-11-27): zamiast czatu z AI w MVP. Treść kart jest **deterministyczna** (część katalogu reguł, wartości startowe przy wdrożeniu) — porady bezpieczeństwa nigdy nie pochodzą z modelu językowego. Karta jest informacją, nie blokuje wysłania zgłoszenia i nie zastępuje telefonu alarmowego.
@@ -140,6 +144,7 @@ Format FR (ustalony przez użytkownika): „[Aktor] może [zdolność]".
 - Produkt dostępny jako **aplikacja webowa** (decyzja użytkownika 2026-11-25); dopuszczalna przyszła zmiana w stronę desktopu — nie wymaga przepisania rdzenia.
 - Ścieżka mieszkańca (logowanie, zgłoszenie, wspólna lista, podgląd statusu) jest w pełni wykonalna na telefonie — mieszkańcy wchodzą głównie z komórki. Panel zarządcy i pracownika administracji może wymagać komputera (decyzja użytkownika 2026-11-26).
 - Dostęp do treści zgłoszeń i danych mieszkańców mają wyłącznie uprawnione role: mieszkaniec (treści zgłoszeń bez tożsamości zgłaszających), administracja/zarządca (pełnia). Nikt nieuprawniony nie widzi danych.
+- Niedostępność usługi AI (FR-022) nie blokuje żadnej innej funkcji; podpowiedź ma ograniczony czas oczekiwania i pokazuje postęp zgodnie z progiem ~2 s.
 - MVP nie zawiera anonimizacji w aplikacji (FR-016 poza MVP) ani harmonogramu retencji; zasada retencji pozostaje regułą operacyjną realizowaną ręcznie: „dane trzymamy tylko tak długo, jak wymaga obsługa zgłoszenia i rozliczenia wspólnoty".
 
 ## Business Logic
@@ -155,6 +160,7 @@ Doprecyzowania (decyzje użytkownika 2026-11-26):
 - **Zegar terminu:** liczony **całą dobę, 7 dni w tygodniu** (bez godzin pracy).
 - **Kategoria wybierana przez mieszkańca + słowa kluczowe:** **wyższy z dwóch priorytetów wygrywa** — kategoria ma domyślny priorytet, trafienie w katalogu słów kluczowych może go podnieść (np. kategoria „hydraulika” → niższy priorytet, ale „zalewa” w opisie → P1). Wpływ na „Do oceny” → Open Questions.
 - **Korekta zarządcy (FR-014):** zapisuje kto, kiedy, z jakiego priorytetu na jaki.
+- **Podpowiedź AI (FR-022):** dostępna tylko dla zgłoszeń „Do oceny”, wywoływana na żądanie zarządcy (przycisk), bez przetwarzania w tle. Wynik ma stały format (kategoria z listy kategorii, P1–P4, uzasadnienie); odpowiedź spoza listy kategorii lub priorytetów jest odrzucana. Zastosowanie podpowiedzi = zwykła korekta FR-014 (ślad: kto, kiedy, z jakiego na jaki) z oznaczeniem, że pochodziła z AI. Błąd lub przekroczenie czasu modelu → komunikat „podpowiedź niedostępna”, ręczna ocena działa bez zmian.
 - **Karta bezpieczeństwa (FR-021):** atrybut katalogu może mieć przypisaną kartę bezpieczeństwa (stały tekst). Trafienie w taki atrybut pokazuje kartę mieszkańcowi razem z potwierdzeniem zgłoszenia i w podglądzie jego zgłoszenia; przy kilku trafieniach pokazywane są wszystkie przypisane karty. Korekta priorytetu przez zarządcę nie zmienia kart.
 - *Po MVP (decyzje zachowane na później):* podbicia (FR-017) są wyłącznie sygnałem dla zarządcy — nie zmieniają priorytetu, terminu ani kolejności; edycja zgłoszenia (FR-008) powoduje ponowną klasyfikację, chyba że zarządca ręcznie skorygował priorytet — wtedy korekta ma pierwszeństwo.
 
@@ -164,7 +170,7 @@ Doprecyzowania (decyzje użytkownika 2026-11-26):
 - MVP ma **3 role**:
   - **Mieszkaniec:** widzi **wszystkie zgłoszenia swojej wspólnoty i ich statusy** (jawność w obrębie wspólnoty, bez tożsamości zgłaszających i bez miejsca usterki); tworzy zgłoszenia.
   - **Pracownik administracji:** wprowadza zgłoszenia w imieniu mieszkańca (FR-013); widzi zgłaszającego i miejsce usterki; zakłada konta.
-  - **Zarządca:** pełna obsługa zgłoszeń swojej wspólnoty (statusy, korekta priorytetu, ocena „Do oceny”); widzi zgłaszającego i miejsce usterki; zakłada konta.
+  - **Zarządca:** pełna obsługa zgłoszeń swojej wspólnoty (statusy, korekta priorytetu, ocena „Do oceny”, podpowiedź AI — FR-022); widzi zgłaszającego i miejsce usterki; zakłada konta.
 - **Po MVP — pracownik serwisu** (FR-019, FR-020 = nice-to-have): należy do grupy przypisanej do wspólnoty, widzi zgłoszenia tylko tej wspólnoty wraz z kontaktem do zgłaszającego, może ustawiać „W realizacji” / „Zamknięte”, nie zmienia priorytetu. W MVP zarządca przekazuje serwisowi kontakt poza aplikacją.
 - Model wielowspólnotowy: dane wspólnot są od siebie odizolowane (pracownik spoza grupy nie widzi wspólnoty).
 - **Każde żądanie dostępu do danych wymaga uwierzytelnionej tożsamości i autoryzacji na poziomie roli.** **Każdy punkt dostępu do danych jest chroniony** — brak dostępnych „furtką" danych publicznych poza tym, co jawne z założenia (treści zgłoszeń bez tożsamości widoczne dla zalogowanych mieszkańców wspólnoty).
@@ -191,7 +197,7 @@ Redukcja zakresu do 3 tygodni (decyzja użytkownika 2026-11-26):
 - **Brak edycji zgłoszenia przez mieszkańca** (FR-008 = nice-to-have) — poprawki przez zarządcę / telefon; odpada reguła reklasyfikacji po edycji.
 
 Pomysły na po MVP (nice-to-have, decyzja użytkownika 2026-11-27):
-- **Brak asystenta AI (czatu) przy zgłaszaniu problemu** — mieszkaniec opisuje problem (np. „śmierdzi instalacja”), agent AI analizuje go i podpowiada działania (wyłącz bezpieczniki, zadzwoń po straż pożarną lub elektryka) i pomaga wypełnić zgłoszenie. W MVP zastępuje go karta bezpieczeństwa (FR-021). Ustalenia na później:
+- **Brak asystenta AI (czatu) przy zgłaszaniu problemu** — mieszkaniec opisuje problem (np. „śmierdzi instalacja”), agent AI analizuje go i podpowiada działania (wyłącz bezpieczniki, zadzwoń po straż pożarną lub elektryka) i pomaga wypełnić zgłoszenie. W MVP zastępuje go karta bezpieczeństwa (FR-021); integracja z modelem z FR-022 (Azure OpenAI, `IChatClient`) jest punktem wyjścia dla asystenta. Ustalenia na później:
   - porady bezpieczeństwa (112, bezpieczniki, gaz) zawsze z deterministycznych reguł (FR-021), nie z modelu; AI tylko pomaga opisać problem i proponuje kategorię;
   - gateway wejściowy (ograniczenie do tematu zgłoszeń, ochrona przed prompt injection) i wyjściowy (ton, konwencja, brak treści obraźliwych) — rozważane: LiteLLM jako gateway, Langfuse do monitorowania zapytań; prostsza alternatywa w obecnym stacku: Azure OpenAI (content filters + Prompt Shields), Microsoft.Extensions.AI (`IChatClient`), Langfuse Cloud przez OpenTelemetry lub Application Insights;
   - RODO: opisy zgłoszeń mogą zawierać dane osobowe — model w regionie UE, bez trenowania na danych.
